@@ -3,11 +3,11 @@
   "name": "playground",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "development": "nodemon server.js -e html,css,js,hbs"
+    "start": "node app.js",
+    "development": "nodemon app.js -e html,css,js,hbs"
   },
   "keywords": [],
   "author": "",

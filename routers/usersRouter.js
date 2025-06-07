@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
 const mongodb = require("mongodb");
 
-const mongoClient = require("../database/connection.js");
+const { client: mongoClient } = require("../database/connection.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const userValidator = require("../validators/userValidator.js");
 const loginRequestValidator = require("../validators/loginRequestValidator.js");
@@ -119,8 +119,11 @@ userRouter.post("/create-user", asyncHandler(async (req, res, next) => {
     }
     catch(error)
     {
-        res.status(500).send({ error: "The server ran into an error" });
-        await session.abortTransaction();
+        console.error("Error during /create-user:", error); // Log the full error
+        if (session.inTransaction()) { // Check if a transaction is active
+            await session.abortTransaction();
+        }
+        res.status(500).send({ error: "The server ran into an error during account creation. Check server logs for details." });
     }
 
     await session.endSession();
