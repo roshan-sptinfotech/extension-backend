@@ -149,8 +149,15 @@ app.get('/cancel', (req, res) => {
 
 
 async function startServer() {
-    await connectDB(); // Connect to DB before starting the server
-    app.listen(PORT, () => console.log(`Server program is running on port ${PORT}`));
+    const db = await connectDB(); // Connect to DB and get the db object
+    if (db) {
+        app.locals.db = db; // Make db object available globally via app.locals
+        app.listen(PORT, () => console.log(`Server program is running on port ${PORT}`))
+    } else {
+        // This case should ideally not be reached if connectDB exits on failure
+        console.error("DB connection failed, server not starting.");
+        process.exit(1);
+    }
 }
 
 startServer();

@@ -1,8 +1,7 @@
-
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 // Ensure dotenv is configured in your main server file before this is imported if using .env for MONGODB_SERVER_URL
-const uri = "mongodb+srv://sptvivek814:y10iwMvhjm0qGCft@cluster0.quacet5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGODB_SERVER_URL || "mongodb+srv://sptvivek814:y10iwMvhjm0qGCft@cluster0.quacet5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -12,12 +11,17 @@ const client = new MongoClient(uri, {
   }
 });
 
+let dbConnection;
+
 async function connectDB() {
+  if (dbConnection) {
+    return dbConnection;
+  }
   try {
     await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Successfully connected to MongoDB!");
+    console.log("Successfully connected to MongoDB Atlas!");
+    dbConnection = client.db("emailReadReceipt");
+    return dbConnection;
   } catch (err) {
     console.error("Failed to connect to MongoDB", err);
     process.exit(1); // Exit application if DB connection fails

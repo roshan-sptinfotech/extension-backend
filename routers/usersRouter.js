@@ -57,7 +57,7 @@ userRouter.post("/create-user", asyncHandler(async (req, res, next) => {
 
 
         //Checking if a user with the given email already exists or not
-        if(await userAlreadyExists(userData.email, session))
+        if(await userAlreadyExists(req.app.locals.db, userData.email, session))
         {   
             await session.abortTransaction();
             return res.status(400).send({ error: "A user with the given email already exists" });
@@ -81,14 +81,14 @@ userRouter.post("/create-user", asyncHandler(async (req, res, next) => {
 
         userDocument.email = userDocument.email.toLowerCase();
 
-        const result = await mongoClient.db("emailReadReceipt").collection("users").insertOne(userDocument, { session });
+        const result = await req.app.locals.db.collection("users").insertOne(userDocument, { session });
         
         //Please note that the payload of the token will contain an object of this shape:
         // { _id: <string> } and not an ObjectId() value. So convert it back into an ObjectId() value before
         //using it inside queries
         const token = createUserToken(result.insertedId);
 
-        userDocument = await mongoClient.db("emailReadReceipt").collection("users").findOne({ _id: result.insertedId }, { session });
+        userDocument = await req.app.locals.db.collection("users").findOne({ _id: result.insertedId }, { session });
         
         const securePassword = await bcryptjs.hash(userDocument.password, process.env.BCRYPT_SALT);
 
@@ -100,7 +100,7 @@ userRouter.post("/create-user", asyncHandler(async (req, res, next) => {
             }
         };
         
-        await mongoClient.db("emailReadReceipt").collection("users").updateOne({ _id: result.insertedId }, updateDocument, { session });
+        await req.app.locals.db.collection("users").updateOne({ _id: result.insertedId }, updateDocument, { session });
 
 
         verificationPassword = encryptionObject.encrypt(verificationPassword);
@@ -152,7 +152,7 @@ userRouter.get("/verify-account", asyncHandler(async (req, res, next) =>
         userId = new mongodb.ObjectId(userId);
 
         const filter = { _id: userId };
-        const userDocument = await mongoClient.db("emailReadReceipt").collection("users").findOne(filter, { session });
+        const userDocument = await req.app.locals.db.collection("users").findOne(filter, { session });
 
         if(!userDocument)
         {
@@ -186,7 +186,7 @@ userRouter.get("/verify-account", asyncHandler(async (req, res, next) =>
             $set: { verified: true },
             $unset: { verificationPassword: "" }
         };
-        await mongoClient.db("emailReadReceipt").collection("users").updateOne({ _id: userDocument._id }, updateDocument, { session });
+        await req.app.locals.db.collection("users").updateOne({ _id: userDocument._id }, updateDocument, { session });
 
         const code = generateHomepageRedirectionPage();
         res.send(code);
@@ -228,7 +228,7 @@ userRouter.post("/log-in", asyncHandler(async (req, res, next) =>
             return res.status(400).send({ error: error.details[0].message });
         }
 
-        if(!(await userAlreadyExists(loginData.email, session)))
+        if(!(await userAlreadyExists(req.app.locals.db, loginData.email, session)))
         {
             await session.abortTransaction();
             return res.status(404).send({ error: "User not found" });
@@ -238,7 +238,7 @@ userRouter.post("/log-in", asyncHandler(async (req, res, next) =>
             email: loginData.email.toLowerCase()
         };
 
-        const user = await mongoClient.db("emailReadReceipt").collection("users").findOne(filter, { session });
+        const user = await req.app.locals.db.collection("users").findOne(filter, { session });
 
         const isCorrectPassword = await bcryptjs.compare(loginData.password, user.password);
         
@@ -259,7 +259,7 @@ userRouter.post("/log-in", asyncHandler(async (req, res, next) =>
 
         user.tokens.push(token);
 
-        await mongoClient.db("emailReadReceipt").collection("users").replaceOne({ _id: user._id }, user, { session });
+        await req.app.locals.db.collection("users").replaceOne({ _id: user._id }, user, { session });
 
 
         await session.commitTransaction();
@@ -293,7 +293,7 @@ userRouter.post("/log-out", authMiddleware, asyncHandler(async (req, res, next) 
             _id: user._id
         };
 
-        await mongoClient.db("emailReadReceipt").collection("users").replaceOne(filter, user, { session });
+        await req.app.locals.db.collection("users").replaceOne(filter, user, { session });
 
         
         await session.commitTransaction();
@@ -321,7 +321,7 @@ userRouter.post("/log-out-all", authMiddleware, asyncHandler(async (req, res, ne
             _id: user._id
         };
 
-        await mongoClient.db("emailReadReceipt").collection("users").replaceOne(filter, user, { session });
+        await req.app.locals.db.collection("users").replaceOne(filter, user, { session });
 
         await session.commitTransaction();
         res.send({ message: "Logged out from all devices" });
@@ -370,7 +370,7 @@ userRouter.post("/logout-all-notoken", asyncHandler(async (req, res, next) =>
             email: logoutData.email.toLowerCase()
         };
 
-        const user = await mongoClient.db("emailReadReceipt").collection("users").findOne(filter, { session });
+        const user = await req.app.locals.db.collection("users").findOne(filter, { session });
 
         const isCorrectPassword = await bcryptjs.compare(logoutData.password, user.password);
         
@@ -388,7 +388,7 @@ userRouter.post("/logout-all-notoken", asyncHandler(async (req, res, next) =>
             $set: { tokens: [] }
         };
 
-        await mongoClient.db("emailReadReceipt").collection("users").updateOne(filter, updateDocument, { session });
+        await req.app.locals.db.collection("users").updateOne(filter, updateDocument, { session });
 
 
         await session.commitTransaction();
@@ -430,7 +430,7 @@ userRouter.delete("/user-delete", authMiddleware, asyncHandler(async (req, res, 
         };
 
         //Deleting the user document
-        await mongoClient.db("emailReadReceipt").collection("users").deleteOne(filter, { session });
+        await req.app.locals.db.collection("users").deleteOne(filter, { session });
 
         res.send({ message: "Your account was deleted" });
 
@@ -468,7 +468,7 @@ userRouter.post("/forgot-password-begin", asyncHandler(async (req, res, next) =>
         }
 
         let filter = { email };
-        let userDocument = await mongoClient.db("emailReadReceipt").collection("users").findOne(filter, { session });
+        let userDocument = await req.app.locals.db.collection("users").findOne(filter, { session });
 
         //No user with the given email was found
         if(!userDocument)
@@ -488,7 +488,7 @@ userRouter.post("/forgot-password-begin", asyncHandler(async (req, res, next) =>
         };
         
         //Written the passwordResetCode to the user's document
-        await mongoClient.db("emailReadReceipt").collection("users").updateOne(filter, updateDocument, { session });
+        await req.app.locals.db.collection("users").updateOne(filter, updateDocument, { session });
 
         passwordResetCode = encryptionObject.encrypt(passwordResetCode);
         const htmlCode = generatePasswordResetEmail(userDocument._id.toString(), passwordResetCode);
@@ -539,7 +539,7 @@ userRouter.post("/forgot-password-end", asyncHandler(async (req, res, next) =>
         userId = new mongodb.ObjectId(userId);
 
         let filter = { _id: userId };
-        const userDocument = await mongoClient.db("emailReadReceipt").collection("users").findOne(filter, { session });
+        const userDocument = await req.app.locals.db.collection("users").findOne(filter, { session });
 
         if(!userDocument)
         {
@@ -572,7 +572,7 @@ userRouter.post("/forgot-password-end", asyncHandler(async (req, res, next) =>
         const newPasswordHash = await bcryptjs.hash(newPassword, process.env.BCRYPT_SALT);
 
         //Writing the new password hash and removing the passwordResetCode field from the database
-        await mongoClient.db("emailReadReceipt").collection("users").updateOne(filter, {  
+        await req.app.locals.db.collection("users").updateOne(filter, {  
             $set: { password: newPasswordHash },
             $unset: { passwordResetCode: "" }
         }, { session });
@@ -621,7 +621,7 @@ userRouter.post("/resend-activation-mail", authMiddleware, asyncHandler(async (r
             $set: { verificationPassword }
          };
 
-        await mongoClient.db("emailReadReceipt").collection("users").updateOne(filter, updateDocument, { session });
+        await req.app.locals.db.collection("users").updateOne(filter, updateDocument, { session });
 
         //Now we encrypt the verificationPassword before writing it in the email's anchor element
         verificationPassword = encryptionObject.encrypt(verificationPassword);
