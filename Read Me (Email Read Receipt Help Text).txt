@@ -1,0 +1,20 @@
+1) Please write a correct value for the "MONGODB_SERVER_URL" field in the ".env" file after
+deploying a cluster of mongodb nodes as the code depends on it.
+2) After choosing a domain name, please type the complete URL without the path part in the
+"APPLICATION_URL" field of the ".env" file.
+3) Right now, this project uses the port number 9000 and it has also been written as a field
+in the ".env" file, if needed, please also modify the PORT field as well.
+
+4) For every user account, a mongodb document is inserted in the "users" collection of the
+"emailReadReceipt" database, each such document has a field named as "serviceExpirationDate"
+which stores the date after which we will stop serving that user account until they get a new
+subscription, after the payment has been processed, please update this "serviceExpirationDate"
+field accordingly based on the package that a user has purchased.
+
+For doing so, some helper functions which follow a very primitive approach have been defined 
+in the "utils/updateServiceExpiration.js" file, please feel free to define a more general way of
+updating this date field.
+
+NOTE: The code for this project may contain parts that have been written in a non-standard
+and messy way due to strict time limitations, so the focus was solely on implementing 
+features that just work, please ignore this messiness if possible. 

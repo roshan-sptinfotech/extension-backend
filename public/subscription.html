@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription | Email Read Receipts Extension</title>
+    <link rel="stylesheet" href="subscription.css">
+    <link rel="icon" href="favicon.svg">
+    <script src="https://kit.fontawesome.com/86872e3d10.js" crossorigin="anonymous"></script>
+    <script src="checkExpiredToken.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Add a new script element here -->
+</head>
+<body>
+    <div class="container">
+        <div class="payment-option" data-plan-name="Starter">
+            <div class="header">
+                <h1>Starter Plan</h1>
+                <span>For getting started</span>
+            </div>
+            <table>
+                <tr>
+                    <td><i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Unlimited email tracking</td>
+                </tr>
+
+                <tr>
+                    <td> <i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Unlimited link tracking</td>
+                </tr>
+
+                <tr>
+                    <td> <i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Plan duration of 14 days</td>
+                </tr>
+            </table>
+
+            <div class="price">
+                $1.8
+            </div>
+            <label style="display: block;">
+                <input type="checkbox" class="auto-debit-checkbox">Auto Debit
+            </label>
+            <button class="purchase-button" >PURCHASE</button>
+        </div>
+
+        <div class="payment-option" data-plan-name="Basic">
+            <div class="header">
+                
+                <h1>Basic Plan</h1>
+                <span>A balanced package</span>
+                
+            </div>
+
+            <table>
+                <tr>
+                    <td><i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Unlimited email tracking</td>
+                </tr>
+
+                <tr>
+                    <td> <i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Unlimited link tracking</td>
+                </tr>
+
+                <tr>
+                    <td> <i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Plan duration of 1 month</td>
+                </tr>
+            </table>
+
+            <div class="price">
+                $2.99
+            </div>
+            <label style="display: block;">
+                <input type="checkbox" class="auto-debit-checkbox">Auto Debit
+            </label>
+            <button class="purchase-button" >PURCHASE</button>
+        </div>
+
+        <div class="payment-option" data-plan-name="Pro Subscription">
+            <div class="header">
+                <i class="fa-brands fa-web-awesome crown-icon"></i>
+                <h1>Pro Subscription</h1>
+                <span>For seasoned users</span>
+
+                
+            </div>
+
+            <table>
+                <tr>
+                    <td><i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Unlimited email tracking</td>
+                </tr>
+
+                <tr>
+                    <td> <i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Unlimited link tracking</td>
+                </tr>
+
+                <tr>
+                    <td> <i class="fa-solid fa-circle-check ui-icon blue-icon"></i>Plan duration of 2 months</td>
+                </tr>
+            </table>
+
+            <div class="price">
+                $3.99
+            </div>
+            <label style="display: block;">
+                <input type="checkbox" class="auto-debit-checkbox">Auto Debit
+            </label>
+            <button class="purchase-button">PURCHASE</button>
+        </div>
+    </div>
+</body>
+<script>
+    const stripe = Stripe('pk_test_51OMr3dBvaPoSPFo4EC5tYmgVaYHrYCzrK9LirjzSoyEO0uqDH5aT4Nsp2b3vVdsV8NNpLvKT2skbcXsXzr3hTZrM00r0OnZyyS'); 
+
+    document.querySelectorAll('.auto-debit-checkbox').forEach(checkbox => {
+        const planName = checkbox.closest('.payment-option').getAttribute('data-plan-name');
+        const storedValue = localStorage.getItem(`autoDebit-${planName}`);
+        
+        if (storedValue === 'true') {
+            checkbox.checked = true;
+        }
+
+        checkbox.addEventListener('change', function () {
+            localStorage.setItem(`autoDebit-${planName}`, this.checked);
+        });
+    });
+    document.querySelectorAll('.purchase-button').forEach(button => {
+        button.addEventListener('click', async function () {
+            this.disabled = true;
+
+            const paymentOption = this.closest('.payment-option');
+            const planName = paymentOption.getAttribute('data-plan-name');
+            //const planName = 'basic';
+            //const amount = 299; // Convert to cents
+            const amount = parseFloat(paymentOption.querySelector('.price').textContent.replace('$', '')) * 100; // Convert to cents
+            const autoDebit = this.closest('.payment-option').querySelector('.auto-debit-checkbox').checked;
+
+
+            let response = await fetch("/user", { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: localStorage.getItem("token") })
+            });
+
+            if(!response.ok)
+            {
+                console.log("Could not fetch user id");
+                return;
+            }
+
+            const userData = await response.json();
+
+            // const userId = 'test_user_123'; // Change this dynamically if needed
+            const userId = userData._id;
+
+            try {
+                const response = await fetch('http://localhost:9000/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ planName, amount , autoDebit , userId}),
+                });
+
+                if (!response.ok) {
+                    console.error('Error creating checkout session:', response.statusText);
+                    return;
+                }
+
+                const { id: sessionId } = await response.json();
+                stripe.redirectToCheckout({ sessionId });
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                this.disabled = false;
+            }
+        });
+    });
+
+</script>
+</html>
