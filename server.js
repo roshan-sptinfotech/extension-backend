@@ -50,8 +50,8 @@ app.post('/create-checkout-session', async (req, res) => {
                 mode: 'subscription',
                 customer: customer.id,
                 line_items: [{ price: price.id, quantity: 1 }],
-                success_url: 'http://localhost:9000/success',
-                cancel_url: 'http://localhost:9000/cancel',
+                success_url: 'https://extension-backend-9ti9.onrender.com:9000/success',
+                cancel_url: 'https://extension-backend-9ti9.onrender.com:9000/cancel',
                 metadata: { userId },
             });
 

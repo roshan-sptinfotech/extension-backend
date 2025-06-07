@@ -16,6 +16,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(publicPath));
 
+app.get('/', (req, res) => {
+    res.send('Welcome to the Email Extension API!');
+});
+
 app.use(userRouter);
 app.use(emailReadReceiptRouter);
 app.use(viewingRouter);

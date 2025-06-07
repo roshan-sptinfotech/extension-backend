@@ -1,0 +1,53 @@
+.pagination
+{
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-block;
+}
+
+.pagination a
+{
+    text-decoration: none;
+    padding: 0.7rem 1rem;
+    background-color: rgb(14, 113, 213);
+    color: white;
+    border-left: 1px solid white;
+    
+    
+    /* margin: 0 0.25rem; */
+}
+
+.pagination a:hover:not(.active)
+{
+    background-color: rgb(2, 74, 145);
+    
+}
+
+a.active
+{
+    background-color: rgb(1, 51, 102);
+}
+
+.pagination a:first-of-type
+{
+    border: none;
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+    
+}
+
+.pagination a:last-of-type
+{
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    
+}
+
+@media only screen and (max-width: 600px)
+{
+    .pagination a
+    {
+        padding: 0.4rem 0.5rem;
+    }
+}

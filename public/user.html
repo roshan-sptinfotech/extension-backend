@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View the read status of your emails from your computer.">
+    <title>User Account | Email Read Receipts Extension</title>
+    <link rel="stylesheet" href="./user-page.css">
+    <link rel="stylesheet" href="./notification.css">
+    <link rel="icon" href="favicon.svg">
+    <script src="notification.js" defer></script>
+    <script src="https://kit.fontawesome.com/86872e3d10.js" crossorigin="anonymous"></script>
+    <script src="checkExpiredToken.js"></script>
+    <script src="/user.js" defer></script>
+</head>
+<body>
+<!-- <header></header> -->
+<div class="container">
+    <div class="nav">
+        <ul>
+            <li>
+                <a href="./email-status.html" class="active" target="current_page">
+                    <i class="fa-regular fa-envelope nav-icon"></i>Email Status
+                </a>
+            </li>
+
+            <li>
+                <a href="./link-clicks.html" target="current_page">
+                    <i class="fa-solid fa-computer-mouse nav-icon"></i>
+                    Link Clicks
+                </a>
+            </li>
+
+            <li>
+                <a href="./subscription.html" target="current_page">
+                    <i class="fa-regular fa-credit-card nav-icon">
+
+                    </i>Subscription
+                </a>
+            </li>
+            
+            <li>
+                <a href="/login.html" class="logout-nav">
+                    <i class="fa-solid fa-right-from-bracket nav-icon">
+                    </i>Logout
+                </a>
+            </li>
+
+            <li>
+                <a href="/login.html" class="resend-activation-nav">
+                    <i class="fa-solid fa-reply nav-icon"></i>
+                    Resend Activation Mail
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="main">
+        <iframe src="/email-status.html" class="current-page" name="current_page"></iframe>
+    </div>
+</div>
+</body>
+</html>

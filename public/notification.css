@@ -1,0 +1,18 @@
+@keyframes messageVanish
+{
+    0%
+    {
+        opacity: 1.0;
+    }
+
+    100%
+    {
+        opacity: 0.0;
+        display: none;   
+    }
+}
+
+.animate
+{
+    animation-name: messageVanish;
+}
